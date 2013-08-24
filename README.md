@@ -12,8 +12,9 @@ Install:
 
 	1) clone Nic Ficanos repository
 	2) copy files from this repo into Nic's repo
-	3) chmod u+x download.py
-	4) python download.py
+	3) open download.py and edit path to your music libary
+	4) chmod u+x download.py
+	5) python download.py
 
 Usage:
 ================
