@@ -5,13 +5,13 @@ Author: niph.sp
 
 Email: niph.dev@gmail.com
 
-Description: Extension of Nic Ficanos pytube youtube downloader (https://github.com/ablanco/python-youtube-download)
+Description: Extension of Nic Ficanos pytube youtube downloader (https://github.com/ablanco/python-youtube-download). Converts downloaded mp4s with ffmpeg to mp3
 
 Install: 
 ================
 
 	1) clone Nic Ficanos repository
-	2) clone this repository
+	2) copy files from this repo into Nic's repo
 	3) chmod u+x download.py
 	4) python download.py
 
