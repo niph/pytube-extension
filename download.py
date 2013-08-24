@@ -49,9 +49,9 @@ def welcome():
 def download(list):
 	#read url of videos to download
 	try:
-		data = [line.strip() for line in open(list, 'r')]
 		n = 0
 		e = 0	
+		data = [line.strip() for line in open(list, 'r')]
 		while n != len(data):
 			if len(data) >= 1:# and data[1] != '' and line != '' or line != ' ':
 				try:		
@@ -61,12 +61,17 @@ def download(list):
 						yt.url = item
 						#yt.filter('flv')[-1]
 		
-						#assume there is atleast one mp4 file with 360p resolution
-						video = yt.get('mp4','360p')
-						print "\rdownloading: " + yt.filename
-						#download into tmp folder
-						video.download('tmp/')
-						n += 1
+						#check if file already exists
+						fe = "tmp/" + yt.filename + ".mp4"
+						if os.path.exists(fe) == False:
+							#assume there is atleast one mp4 file with 360p resolution
+							video = yt.get('mp4','360p')
+							print "\rdownloading: " + yt.filename
+							#download into tmp folder
+							video.download('tmp/')
+							n += 1
+						else:
+							print "File [" + yt.filename + "] already exists, skipping dowload"
 		
 				except:
 					print "\ncould not download video: " + yt.filename
@@ -124,12 +129,15 @@ def convert():
 
 
 def getPlaylist():
-	pURL = raw_input("\n\nPlease enter playlist link: ")
+	pURL = raw_input("\n\nPlease enter playlist uid (e.g. PL81676A3E85BD3833): ")
 	#extract playlist id
-	pUID = pURL[pURL.index("&list=")+6:pURL.index("&feature=")]
+	#if find(pURL,"&feature") == 1:
+	#	pUID = pURL[pURL.index("&list=")+6:pURL.index("&feature=")]
+	#else:
+	#	pUID = pURL[pURL.index("&list=")+6:]
 	
 	#get json string from playlist
-	pAPI = "http://gdata.youtube.com/feeds/api/playlists/" + str(pUID) + "/?v=2&alt=json&feature=plcp"
+	pAPI = "http://gdata.youtube.com/feeds/api/playlists/" + str(pURL) + "/?v=2&alt=json&feature=plcp"
 	data = urllib2.urlopen(pAPI).read()
 
 	j = json.loads(data)    
@@ -142,9 +150,10 @@ def getPlaylist():
 		for item in group:
 				#convert extracted urls to pytube readable link
 				string = str(item.get("url")) + "\n"
-				vUID = string[string.index("/v/")+3:string.index("?version")]
-				vURL = "http://www.youtube.com/watch?v=" + vUID + "\n"
-				p.write(vURL)
+				if string.find("rtsp://") == -1:
+					vUID = string[string.index("/v/")+3:string.index("?version=")]
+					vURL = "http://www.youtube.com/watch?v=" + vUID + "\n"
+					p.write(vURL)
 	p.close()
 	download("playlist.txt")
 
