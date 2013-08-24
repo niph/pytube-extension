@@ -51,7 +51,8 @@ def download(list):
         n = 0
         e = 0
         f = open(list,"r")
-        rowcount = f.readlines()
+        rowcount = len(f.readlines())
+        print str(rowcount) + " links in list....starting\n"
         data = [line.strip() for line in open(list, 'r')]
         while n <= rowcount:
             if len(data) >= 1:
@@ -66,19 +67,17 @@ def download(list):
                         if os.path.exists(fe) == False:
                             #assume there is atleast one mp4 file with 360p resolution
                             video = yt.get('mp4', '360p')
-                            print "\rdownloading: " + yt.filename
+                            print "\r" + str(n) + " [-] downloading: " + yt.filename
                             #download into tmp folder
                             video.download('tmp/')
                             n += 1
                         else:
                             print "File [" + yt.filename + "] already exists, skipping dowload"
-                            print n
                             n += 1
 
                 except:
-                    print "\ncould not download video: " + yt.filename
-                    print "\rTry to download next video in list if theres any"
-                    print n
+                    print "\n" + str(n) + " [-] could not download video: " + yt.filename
+                    print "\rTry to download next video in list if theres any\n"
                     n += 2
                     e += 1
 
@@ -143,6 +142,7 @@ def getPlaylist():
     #	pUID = pURL[pURL.index("&list=")+6:]
 
     #get json string from playlist
+    print "\n[processing] getting json strinf from YouTube\n"
     pAPI = "http://gdata.youtube.com/feeds/api/playlists/" + str(pURL) + "/?v=2&alt=json&feature=plcp"
     data = urllib2.urlopen(pAPI).read()
 
