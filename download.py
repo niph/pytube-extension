@@ -33,7 +33,9 @@ def welcome():
 
     selection = int(raw_input("\nNow it's your turn: [1,2,3,4]: "))
     if selection == 1:
-        download("tracklist.txt")
+        cwd = os.path.dirname(os.path.realpath(__file__))
+        tl = os.path.join(cwd, "tracklist.txt")
+        download(tl)
     elif selection == 2:
         getPlaylist()
     elif selection == 3:
