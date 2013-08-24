@@ -52,36 +52,38 @@ def download(list):
 		n = 0
 		e = 0	
 		data = [line.strip() for line in open(list, 'r')]
-		while n != len(data):
-			if len(data) >= 1:# and data[1] != '' and line != '' or line != ' ':
-				try:		
-					yt = YouTube()
-					#download all videos contained in textfile
-					for item in data:
-						yt.url = item
-						#yt.filter('flv')[-1]
 		
-						#check if file already exists
-						fe = "tmp/" + yt.filename + ".mp4"
-						if os.path.exists(fe) == False:
-							#assume there is atleast one mp4 file with 360p resolution
-							video = yt.get('mp4','360p')
-							print "\rdownloading: " + yt.filename
-							#download into tmp folder
-							video.download('tmp/')
-							n += 1
-						else:
-							print "File [" + yt.filename + "] already exists, skipping dowload"
-		
-				except:
-					print "\ncould not download video: " + yt.filename
-					print "\rTry to download next video in list if theres any"
-					n += 1
-					e += 1
-			       		
-			else:
-				print "tracklist.txt seems to be empty"
-				os._exit(1)
+		if len(data) >= 1:# and data[1] != '' and line != '' or line != ' ':
+			try:	
+				yt = YouTube()				
+				#download all videos contained in textfile
+				for item in data:
+					yt.url = item
+					#yt.filter('flv')[-1]
+
+					#check if file already exists
+					fe = "tmp/" + yt.filename + ".mp4"
+					if os.path.exists(fe) == False:
+						
+						#assume there is atleast one mp4 file with 360p resolution
+						video = yt.get('mp4','360p')
+						print "\rdownloading: " + yt.filename
+						#download into tmp folder
+						video.download('tmp/')
+						n += 1
+					else:
+						print "File [" + yt.filename + "] already exists, skipping dowload"
+
+			except:
+				print "\ncould not download video: " + yt.filename
+				print "\rTry to download next video in list if theres any"
+				print n
+				n += 1
+				e += 1
+		       		
+		else:
+			print "tracklist.txt seems to be empty"
+			os._exit(1)
 		print "\nDownloaded " + str((n-e)) + " videos of a total of " + str(n) + "\n" + str(e) + " errors occured"
 	
 		selection = raw_input("\n\nConvert Downloaded videos to mp3?: [Yn]: ")
