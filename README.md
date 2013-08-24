@@ -2,10 +2,21 @@ pytube-extension
 ================
 
 Author: niph.sp
+
 Email: niph.dev@gmail.com
+
 Description: Extension of Nic Ficanos pytube youtube downloader (https://github.com/ablanco/python-youtube-download)
 
-Usage: 
+Install: 
+================
+
+	1) clone Nic Ficanos repository
+	2) clone this repository
+	3) chmod u+x download.py
+	4) python download.py
+
+Usage:
+================
 
 	1) copy single video urls from youtube into tracklist.txt 
 		empty rows may cause problems
