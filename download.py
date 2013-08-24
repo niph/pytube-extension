@@ -63,7 +63,9 @@ def download(list):
                         yt.url = data[n]#item
 
                         #check if file already exists
-                        fe = "tmp/" + yt.filename + ".mp4"
+                        cwd = os.path.dirname(os.path.realpath(__file__))
+                        tmp = os.path.join(cwd, "tmp")
+                        fe = tmp + yt.filename + ".mp4"
                         if os.path.exists(fe) == False:
                             #assume there is atleast one mp4 file with 360p resolution
                             video = yt.get('mp4', '360p')
@@ -113,7 +115,7 @@ def convert():
 
         #check again if target exists may user didn't change musicLibaryPath
     if os.path.exists(target) == True:
-        cwd = os.getcwd()
+        cwd = os.path.dirname(os.path.realpath(__file__))
         tmp = os.path.join(cwd, "tmp")
         files = [f for f in os.listdir(tmp)]
 
