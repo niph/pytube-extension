@@ -10,11 +10,10 @@ Description: Extension of Nic Ficanos pytube youtube downloader (https://github.
 Install: 
 ================
 
-	1) clone Nic Ficanos repository
-	2) copy files from this repo into Nic's repo
-	3) open download.py and edit path to your music libary
-	4) chmod u+x download.py
-	5) python download.py
+	1) clone Nic Ficanos repository and run setup.py
+	2) open download.py and edit path to your music libary
+	3) chmod u+x download.py
+	4) python download.py
 
 Usage:
 ================
@@ -22,5 +21,5 @@ Usage:
 	1) copy single video urls from youtube into tracklist.txt 
 		empty rows may cause problems
 	2) enter link of playlist when you are prompted for it
-		note: can only download public playlists
+		note: can only download public playlists (still in alpha state)
 	3) convert downloaded mp4 files from tmp/ folder with ffmpeg to mp3
