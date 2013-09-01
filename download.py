@@ -3,8 +3,7 @@ import os
 import json
 import urllib2
 from pytube import YouTube
-from string import find, replace
-
+from string import find,replace
 '''
 Author: niph.sp
 Email: 
@@ -12,16 +11,17 @@ Description: Extension of Nic Ficanos pytube youtube downloader (https://github.
 
 Usage: 
 
-    1) copy single video urls from youtube into tracklist.txt
-        empty rows may cause problems
-    2) enter link of playlist when you are prompted for it
-        note: can only download public playlists
-    3) convert downloaded mp4 files from tmp/ folder with ffmpeg to mp3
+	1) copy single video urls from youtube into tracklist.txt 
+		empty rows may cause problems
+	2) enter link of playlist when you are prompted for it
+		note: can only download public playlists
+	3) convert downloaded mp4 files from tmp/ folder with ffmpeg to mp3
 '''
 
 
 #please set your default music directory
 musicLibary = "/media/niph/data1/music"
+
 
 
 def welcome():
@@ -32,15 +32,13 @@ def welcome():
     print "\r\t4) return 0"
 
     selection = int(raw_input("\nNow it's your turn: [1,2,3,4]: "))
-    if selection == 1:
-        cwd = os.path.dirname(os.path.realpath(__file__))
-        tl = os.path.join(cwd, "tracklist.txt")
-        download(tl)
-    elif selection == 2:
+    if selection==1:
+        download("tracklist.txt")
+    elif selection==2:
         getPlaylist()
-    elif selection == 3:
+    elif selection==3:
         convert()
-    elif selection == 4:
+    elif selection==4:
         os._exit(1)
     else:
         print "\nSorry could not match your input to an option\n"
@@ -106,35 +104,35 @@ def download(list):
 def convert():
     print "***ATTENTION*** all .mp4 files will be deleted"
     c = raw_input("\n\nInput subdirectory: ")
-    if int(len(c)) == 0:
+    if int(len(c))==0:
         target = musicLibary
     else:
-        target = os.path.join(musicLibary, c)
+        target = os.path.join(musicLibary,c)
         if os.path.exists(target) == False:
-            mkdir = "mkdir " + target
+            mkdir = "mkdir "+target
             os.system(mkdir)
 
 
         #check again if target exists may user didn't change musicLibaryPath
     if os.path.exists(target) == True:
-        cwd = os.path.dirname(os.path.realpath(__file__))
-        tmp = os.path.join(cwd, "tmp")
-        files = [f for f in os.listdir(tmp)]
+        cwd = os.getcwd()
+        tmp = os.path.join(cwd,"tmp")
+        files = [ f for f in os.listdir(tmp) ]
 
         #convert to mp3
         for item in files:
-            if find(item, ".mp4", 0, len(item)) != -1:
-                mp4 = os.path.join(tmp, item)
-                mp3 = os.path.join(target, replace(item, ".mp4", ".mp3"))
+            if find(item,".mp4",0,len(item)) != -1:
+                mp4 = os.path.join(tmp,item)
+                mp3 = os.path.join(target,replace(item,".mp4",".mp3"))
                 cmd = "ffmpeg -i \"" + mp4 + "\" -vn -ar 44100 -ac 2 -ab 192k -f mp3 \"" + mp3 + "\""
                 os.system(cmd)
     else:
-        print "musicLibary does not exist - pleace set correct path"
+        print "musicLibary does not exist - please set correct path"
         os._exit(0)
 
     #delete mp4
     cmd = "rm *.mp4"
-    print cmd
+    os.system(cmd)
 
 
 def getPlaylist():
@@ -145,63 +143,53 @@ def getPlaylist():
     #else:
     #	pUID = pURL[pURL.index("&list=")+6:]
 
-    #get json string from playlist
-    print "\n[processing] getting json strinf from YouTube\n"
-    pAPI = "http://gdata.youtube.com/feeds/api/playlists/" + str(pURL) + "/?v=2&alt=json&feature=plcp"
+    itemPerPlaylist = 50
+
+    print "retrieving playlist information"
+    #count() of all videos in playlist
+    pAPI = "http://gdata.youtube.com/feeds/api/playlists/" + str(pURL) + "/?v=2&alt=json&feature=plcp&max-results=" + str(itemPerPlaylist)
     data = urllib2.urlopen(pAPI).read()
+    jMax = json.loads(data)
+    totalResults = jMax.get("feed",{}).get("openSearch$totalResults",{}).get("$t",{})
+    print "found " + str(totalResults) + " videos..."
+    p = open("playlist.txt","w")
 
-    j = json.loads(data)
-    p = open("playlist.txt", "w")
+    #json string can contain a maximum of 50 videos
+    #https://developers.google.com/youtube/2.0/developers_guide_protocol_api_query_parameters
+    while (totalResults % itemPerPlaylist) > 0:
 
-    #get url's of all videos
-    mediagroup = j.get("feed", {}).get("entry", {})
-    for item in mediagroup:
-        group = item.get("media$group", {}).get("media$content", [])
-        for item in group:
-            #convert extracted urls to pytube readable link
-            string = str(item.get("url")) + "\n"
-            if string.find("rtsp://") == -1:
-                vUID = string[string.index("/v/") + 3:string.index("?version=")]
-                vURL = "http://www.youtube.com/watch?v=" + vUID + "\n"
-                p.write(vURL)
+        #get the proper values for max-results and start-index
+        if (totalResults - itemPerPlaylist) >= (totalResults % itemPerPlaylist):
+            index = totalResults - itemPerPlaylist
+            itemPerPlaylist = 50
+        else:
+            index = 1
+            itemPerPlaylist = totalResults % itemPerPlaylist
+
+        #DEBUG: print "index:" + str(index) + " totalResults:" + str(totalResults) + " itemPerPlaylist:" + str(itemPerPlaylist)
+
+        #fetch JSON into dictionary
+        pAPI = "http://gdata.youtube.com/feeds/api/playlists/" + str(pURL) + "/?v=2&alt=json&feature=plcp&max-results=" + str(itemPerPlaylist) + "&start-index=" + str(index)
+        data = urllib2.urlopen(pAPI).read()
+        j = json.loads(data)
+        totalResults -= itemPerPlaylist
+
+        #extract all URL's from dictionary
+        mediagroup =  j.get("feed",{}).get("entry",{})
+        for item in mediagroup:
+            group = item.get("media$group",{}).get("media$content",[])
+            for item in group:
+                #convert extracted urls to pytube readable link
+                string = str(item.get("url")) + "\n"
+                if string.find("rtsp://") == -1:
+                    vUID = string[string.index("/v/")+3:string.index("?version=")]
+                    vURL = "http://www.youtube.com/watch?v=" + vUID + "\n"
+                    p.write(vURL)
+
+
     p.close()
     download("playlist.txt")
 
 
-welcome()
-		
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+welcome()	
