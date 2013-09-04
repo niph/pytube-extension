@@ -31,6 +31,7 @@ def welcome():
     print "\r\t3) Convert mp4's from tmp/ folder"
     print "\r\t4) return 0"
 
+
     selection = int(raw_input("\nNow it's your turn: [1,2,3,4]: "))
     if selection==1:
         download("tracklist.txt")
@@ -82,6 +83,8 @@ def download(list):
                     print "\rTry to download next video in list if theres any\n"
                     n += 1
                     e += 1
+                    #for item in sys.exc_info():
+                     #   print item
 
             else:
                 print "tracklist.txt seems to be empty"
@@ -136,60 +139,62 @@ def convert():
 
 
 def getPlaylist():
-    pURL = raw_input("\n\nPlease enter playlist uid (e.g. PLB746A93F14AAFF58): ")
-    #extract playlist id
-    #if find(pURL,"&feature") == 1:
-    #	pUID = pURL[pURL.index("&list=")+6:pURL.index("&feature=")]
-    #else:
-    #	pUID = pURL[pURL.index("&list=")+6:]
+    try:
+        pURL = raw_input("\n\nPlease enter playlist uid (e.g. PLB746A93F14AAFF58): ")
+        #extract playlist id
+        #if find(pURL,"&feature") == 1:
+        #	pUID = pURL[pURL.index("&list=")+6:pURL.index("&feature=")]
+        #else:
+        #	pUID = pURL[pURL.index("&list=")+6:]
 
-    itemPerPlaylist = 50
+        itemPerPlaylist = 50
 
-    print "retrieving playlist information"
-    #count() of all videos in playlist
-    pAPI = "http://gdata.youtube.com/feeds/api/playlists/" + str(pURL) + "/?v=2&alt=json&feature=plcp&max-results=" + str(itemPerPlaylist)
-    data = urllib2.urlopen(pAPI).read()
-    jMax = json.loads(data)
-    totalResults = jMax.get("feed",{}).get("openSearch$totalResults",{}).get("$t",{})
-    print "found " + str(totalResults) + " videos..."
-    p = open("playlist.txt","w")
-
-    #json string can contain a maximum of 50 videos
-    #https://developers.google.com/youtube/2.0/developers_guide_protocol_api_query_parameters
-    while (totalResults % itemPerPlaylist) > 0:
-
-        #get the proper values for max-results and start-index
-        if (totalResults - itemPerPlaylist) >= (totalResults % itemPerPlaylist):
-            index = totalResults - itemPerPlaylist
-            itemPerPlaylist = 50
-        else:
-            index = 1
-            itemPerPlaylist = totalResults % itemPerPlaylist
-
-        #DEBUG: print "index:" + str(index) + " totalResults:" + str(totalResults) + " itemPerPlaylist:" + str(itemPerPlaylist)
-
-        #fetch JSON into dictionary
-        pAPI = "http://gdata.youtube.com/feeds/api/playlists/" + str(pURL) + "/?v=2&alt=json&feature=plcp&max-results=" + str(itemPerPlaylist) + "&start-index=" + str(index)
+        print "retrieving playlist information"
+        #count() of all videos in playlist
+        pAPI = "http://gdata.youtube.com/feeds/api/playlists/" + str(pURL) + "/?v=2&alt=json&feature=plcp&max-results=" + str(itemPerPlaylist)
         data = urllib2.urlopen(pAPI).read()
-        j = json.loads(data)
-        totalResults -= itemPerPlaylist
+        jMax = json.loads(data)
+        totalResults = jMax.get("feed",{}).get("openSearch$totalResults",{}).get("$t",{})
+        print "found " + str(totalResults) + " videos..."
+        p = open("playlist.txt","w")
 
-        #extract all URL's from dictionary
-        mediagroup =  j.get("feed",{}).get("entry",{})
-        for item in mediagroup:
-            group = item.get("media$group",{}).get("media$content",[])
-            for item in group:
-                #convert extracted urls to pytube readable link
-                string = str(item.get("url")) + "\n"
-                if string.find("rtsp://") == -1:
-                    vUID = string[string.index("/v/")+3:string.index("?version=")]
-                    vURL = "http://www.youtube.com/watch?v=" + vUID + "\n"
-                    p.write(vURL)
+        #json string can contain a maximum of 50 videos
+        #https://developers.google.com/youtube/2.0/developers_guide_protocol_api_query_parameters
+        while (totalResults % itemPerPlaylist) > 0:
+
+            #get the proper values for max-results and start-index
+            if (totalResults - itemPerPlaylist) >= (totalResults % itemPerPlaylist):
+                index = totalResults - itemPerPlaylist
+                itemPerPlaylist = 50
+            else:
+                index = 1
+                itemPerPlaylist = totalResults % itemPerPlaylist
+
+            #DEBUG: print "index:" + str(index) + " totalResults:" + str(totalResults) + " itemPerPlaylist:" + str(itemPerPlaylist)
+
+            #fetch JSON into dictionary
+            pAPI = "http://gdata.youtube.com/feeds/api/playlists/" + str(pURL) + "/?v=2&alt=json&feature=plcp&max-results=" + str(itemPerPlaylist) + "&start-index=" + str(index)
+            data = urllib2.urlopen(pAPI).read()
+            j = json.loads(data)
+            totalResults -= itemPerPlaylist
+
+            #extract all URL's from dictionary
+            mediagroup =  j.get("feed",{}).get("entry",{})
+            for item in mediagroup:
+                group = item.get("media$group",{}).get("media$content",[])
+                for item in group:
+                    #convert extracted urls to pytube readable link
+                    string = str(item.get("url")) + "\n"
+                    if string.find("rtsp://") == -1:
+                        vUID = string[string.index("/v/")+3:string.index("?version=")]
+                        vURL = "http://www.youtube.com/watch?v=" + vUID + "\n"
+                        p.write(vURL)
 
 
-    p.close()
-    download("playlist.txt")
+        p.close()
+        download("playlist.txt")
+    except urllib2.HTTPError:
+        print "\nCould not get playlist. Please check if playlist is public"
 
 
-
-welcome()	
+welcome()
