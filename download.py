@@ -64,12 +64,12 @@ def download(list):
 
                         #check if file already exists
                         cwd = os.path.dirname(os.path.realpath(__file__))
-                        tmp = os.path.join(cwd, "tmp")
+                        tmp = os.path.join(cwd, "tmp/")
                         fe = tmp + yt.filename + ".mp4"
                         if os.path.exists(fe) == False:
                             #assume there is atleast one mp4 file with 360p resolution
                             video = yt.get('mp4', '360p')
-                            print "\r" + str(n) + " [-] downloading: " + yt.filename
+                            print "\r" + str(n) + " [+] downloading: " + yt.filename
                             #download into tmp folder
                             video.download('tmp/')
                             n += 1
@@ -80,7 +80,7 @@ def download(list):
                 except:
                     print "\n" + str(n) + " [-] could not download video: " + yt.filename
                     print "\rTry to download next video in list if theres any\n"
-                    n += 2
+                    n += 1
                     e += 1
 
             else:
@@ -136,7 +136,7 @@ def convert():
 
 
 def getPlaylist():
-    pURL = raw_input("\n\nPlease enter playlist uid (e.g. PL81676A3E85BD3833): ")
+    pURL = raw_input("\n\nPlease enter playlist uid (e.g. PLB746A93F14AAFF58): ")
     #extract playlist id
     #if find(pURL,"&feature") == 1:
     #	pUID = pURL[pURL.index("&list=")+6:pURL.index("&feature=")]
