@@ -3,15 +3,16 @@ import os
 import json
 import urllib2
 from pytube import YouTube
-from string import find,replace
+from string import find, replace
+
 '''
 Author: niph.sp
-Email: 
+Email:
 Description: Extension of Nic Ficanos pytube youtube downloader (https://github.com/ablanco/python-youtube-download)
 
-Usage: 
+Usage:
 
-	1) copy single video urls from youtube into tracklist.txt 
+	1) copy single video urls from youtube into tracklist.txt
 		empty rows may cause problems
 	2) enter link of playlist when you are prompted for it
 		note: can only download public playlists
@@ -20,8 +21,7 @@ Usage:
 
 
 #please set your default music directory
-musicLibary = "/media/niph/data1/music"
-
+musicLibary = "/Users/niph/Desktop"
 
 
 def welcome():
@@ -31,15 +31,14 @@ def welcome():
     print "\r\t3) Convert mp4's from tmp/ folder"
     print "\r\t4) return 0"
 
-
     selection = int(raw_input("\nNow it's your turn: [1,2,3,4]: "))
-    if selection==1:
+    if selection == 1:
         download("tracklist.txt")
-    elif selection==2:
+    elif selection == 2:
         getPlaylist()
-    elif selection==3:
+    elif selection == 3:
         convert()
-    elif selection==4:
+    elif selection == 4:
         os._exit(1)
     else:
         print "\nSorry could not match your input to an option\n"
@@ -51,7 +50,7 @@ def download(list):
     try:
         n = 0
         e = 0
-        f = open(list,"r")
+        f = open(list, "r")
         rowcount = len(f.readlines())
         print str(rowcount) + " links in list....starting\n"
         data = [line.strip() for line in open(list, 'r')]
@@ -61,7 +60,8 @@ def download(list):
                     yt = YouTube()
                     #download all videos contained in textfile
                     for item in data:
-                        yt.url = data[n]#item
+
+                        yt.url = item
 
                         #check if file already exists
                         cwd = os.path.dirname(os.path.realpath(__file__))
@@ -78,22 +78,22 @@ def download(list):
                             print "File [" + yt.filename + "] already exists, skipping dowload"
                             n += 1
 
-                except:
+                except any, e:
                     print "\n" + str(n) + " [-] could not download video: " + yt.filename
                     print "\rTry to download next video in list if theres any\n"
+                    print e
                     n += 1
                     e += 1
-                    #for item in sys.exc_info():
-                     #   print item
 
             else:
-                print "tracklist.txt seems to be empty"
+                print "Textfile seems to be empty"
                 os._exit(1)
 
     #print "\nDownloaded " + str((n - e)) + " videos of a total of " + str(n) + "\n" + str(e) + " errors occured"
 
-    except:
+    except any, e:
         print "Im sorry there occured an unhandeld exception."
+        print e
 
     selection = raw_input("\n\nConvert Downloaded videos to mp3?: [Yn]: ")
     if selection == "n":
@@ -102,31 +102,29 @@ def download(list):
         convert()
 
 
-
-
 def convert():
     print "***ATTENTION*** all .mp4 files will be deleted"
     c = raw_input("\n\nInput subdirectory: ")
-    if int(len(c))==0:
+    if int(len(c)) == 0:
         target = musicLibary
     else:
-        target = os.path.join(musicLibary,c)
+        target = os.path.join(musicLibary, c)
         if os.path.exists(target) == False:
-            mkdir = "mkdir "+target
+            mkdir = "mkdir " + target
             os.system(mkdir)
 
 
-        #check again if target exists may user didn't change musicLibaryPath
+            #check again if target exists may user didn't change musicLibaryPath
     if os.path.exists(target) == True:
         cwd = os.getcwd()
-        tmp = os.path.join(cwd,"tmp")
-        files = [ f for f in os.listdir(tmp) ]
+        tmp = os.path.join(cwd, "tmp")
+        files = [f for f in os.listdir(tmp)]
 
         #convert to mp3
         for item in files:
-            if find(item,".mp4",0,len(item)) != -1:
-                mp4 = os.path.join(tmp,item)
-                mp3 = os.path.join(target,replace(item,".mp4",".mp3"))
+            if find(item, ".mp4", 0, len(item)) != -1:
+                mp4 = os.path.join(tmp, item)
+                mp3 = os.path.join(target, replace(item, ".mp4", ".mp3"))
                 cmd = "ffmpeg -i \"" + mp4 + "\" -vn -ar 44100 -ac 2 -ab 192k -f mp3 \"" + mp3 + "\""
                 os.system(cmd)
     else:
@@ -135,7 +133,7 @@ def convert():
 
     #delete mp4
     cmd = "rm *.mp4"
-    os.system(cmd)
+    #os.system(cmd)
 
 
 def getPlaylist():
@@ -147,54 +145,55 @@ def getPlaylist():
         #else:
         #	pUID = pURL[pURL.index("&list=")+6:]
 
-        itemPerPlaylist = 50
-
+        itemPerPlaylist = 49
         print "retrieving playlist information"
         #count() of all videos in playlist
         pAPI = "http://gdata.youtube.com/feeds/api/playlists/" + str(pURL) + "/?v=2&alt=json&feature=plcp&max-results=" + str(itemPerPlaylist)
         data = urllib2.urlopen(pAPI).read()
         jMax = json.loads(data)
-        totalResults = jMax.get("feed",{}).get("openSearch$totalResults",{}).get("$t",{})
+        totalResults = jMax.get("feed", {}).get("openSearch$totalResults", {}).get("$t", {})
         print "found " + str(totalResults) + " videos..."
-        p = open("playlist.txt","w")
+        p = open("playlist.txt", "w")
 
         #json string can contain a maximum of 50 videos
         #https://developers.google.com/youtube/2.0/developers_guide_protocol_api_query_parameters
         while (totalResults % itemPerPlaylist) > 0:
 
             #get the proper values for max-results and start-index
-            if (totalResults - itemPerPlaylist) >= (totalResults % itemPerPlaylist):
+            if (totalResults - itemPerPlaylist) >= (totalResults % itemPerPlaylist) and totalResults != 50:
                 index = totalResults - itemPerPlaylist
+                itemPerPlaylist = 50
+            elif (totalResults == 50):
+                index = 1
                 itemPerPlaylist = 50
             else:
                 index = 1
                 itemPerPlaylist = totalResults % itemPerPlaylist
-
             #DEBUG: print "index:" + str(index) + " totalResults:" + str(totalResults) + " itemPerPlaylist:" + str(itemPerPlaylist)
 
             #fetch JSON into dictionary
             pAPI = "http://gdata.youtube.com/feeds/api/playlists/" + str(pURL) + "/?v=2&alt=json&feature=plcp&max-results=" + str(itemPerPlaylist) + "&start-index=" + str(index)
+            print index
             data = urllib2.urlopen(pAPI).read()
             j = json.loads(data)
             totalResults -= itemPerPlaylist
-
             #extract all URL's from dictionary
-            mediagroup =  j.get("feed",{}).get("entry",{})
+            mediagroup = j.get("feed", {}).get("entry", {})
             for item in mediagroup:
-                group = item.get("media$group",{}).get("media$content",[])
+                group = item.get("media$group", {}).get("media$content", [])
                 for item in group:
                     #convert extracted urls to pytube readable link
                     string = str(item.get("url")) + "\n"
                     if string.find("rtsp://") == -1:
-                        vUID = string[string.index("/v/")+3:string.index("?version=")]
+                        vUID = string[string.index("/v/") + 3:string.index("?version=")]
                         vURL = "http://www.youtube.com/watch?v=" + vUID + "\n"
                         p.write(vURL)
-
+                        
 
         p.close()
         download("playlist.txt")
-    except urllib2.HTTPError:
+    except urllib2.HTTPError, e:
         print "\nCould not get playlist. Please check if playlist is public"
-
+        print e
 
 welcome()
