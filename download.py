@@ -2,6 +2,7 @@ import sys
 import os
 import json
 import urllib2
+import platform
 from pytube import YouTube
 from string import find, replace
 
@@ -125,14 +126,22 @@ def convert():
             if find(item, ".mp4", 0, len(item)) != -1:
                 mp4 = os.path.join(tmp, item)
                 mp3 = os.path.join(target, replace(item, ".mp4", ".mp3"))
-                cmd = "ffmpeg -i \"" + mp4 + "\" -vn -ar 44100 -ac 2 -ab 192k -f mp3 \"" + mp3 + "\""
-                os.system(cmd)
+                if(platform.system() == "Linux"):
+                    print "Linux detected...starting convertation"
+                    cmd = "ffmpeg -i \"" + mp4 + "\" -vn -ar 44100 -ac 2 -ab 192k -f mp3 \"" + mp3 + "\""
+                    os.system(cmd)
+                elif(platform.system() == "Darwin"):
+                    print "Please Port ffmpeg to your MAC and expand this script or use itunes"
+                elif(platform.system() == "Windows"):
+                    print "Sorry not tested with Windows, try to change the script on your own"
+                    print "or even better, change your OS ;D"
+                
     else:
         print "musicLibary does not exist - please set correct path"
         os._exit(0)
 
     #delete mp4
-    cmd = "rm *.mp4"
+    #cmd = "rm *.mp4"
     #os.system(cmd)
 
 
